@@ -1,6 +1,6 @@
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
-import { readFileSync } from "fs";
+import { loadServiceAccount } from "./serviceAccount";
 import { getServerEnv } from "@/config/env";
 
 let app: App | undefined;
@@ -9,8 +9,7 @@ let db: Firestore | undefined;
 export function getAdminApp(): App {
   if (app) return app;
 
-  const { serviceAccountPath } = getServerEnv();
-  const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
+  const serviceAccount = loadServiceAccount();
 
   app =
     getApps()[0] ??

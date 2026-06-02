@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { registrationSchema } from "@/lib/validation/registration";
 import { createRegistration } from "@/services/registrations";
+import { getEventById } from "@/services/events";
 import {
   buildPaymentReference,
   initializePaystackTransaction,
@@ -20,8 +21,10 @@ export async function POST(request: Request) {
     }
 
     const registration = await createRegistration(parsed.data);
+    const event = await getEventById(registration.eventId);
     const { siteUrl } = getServerEnv();
     const reference = buildPaymentReference(registration.id);
+    const eventPath = event?.slug ? `/events/${event.slug}` : "/events";
 
     const payment = await initializePaystackTransaction({
       email: registration.email,
@@ -31,7 +34,7 @@ export async function POST(request: Request) {
         registrationId: registration.id,
         eventId: registration.eventId,
       },
-      callbackUrl: `${siteUrl}/events?payment=success&registration=${registration.id}`,
+      callbackUrl: `${siteUrl}${eventPath}?payment=success&registration=${registration.id}`,
     });
 
     return NextResponse.json({

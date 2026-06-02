@@ -24,8 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geist.variable} min-h-screen antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geist.variable} min-h-screen antialiased`}
+        suppressHydrationWarning
+      >
         <Header />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />

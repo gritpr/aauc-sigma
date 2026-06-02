@@ -66,6 +66,16 @@ To enable real email via Firebase Extension:
 
 See [`.env.example`](.env.example). Never commit `.env.local` or `firebase-service-account.json`.
 
+### Vercel
+
+1. Import the GitHub repo on [vercel.com](https://vercel.com).
+2. Add all `NEXT_PUBLIC_*` variables from `.env.local`.
+3. **Firebase Admin:** add `FIREBASE_SERVICE_ACCOUNT_JSON` with the **entire** contents of `firebase-service-account.json` (one variable — do not use the file path on Vercel).
+4. Set `NEXT_PUBLIC_SITE_URL` to your Vercel URL after the first deploy, then redeploy.
+5. Paystack webhook: `https://YOUR-VERCEL-URL/api/webhooks/paystack`
+
+Local development can keep using `FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json` instead.
+
 ## Scripts
 
 | Command | Description |

@@ -29,6 +29,7 @@ const events = [
     priceKobo: 1500000,
     capacity: 120,
     status: "published",
+    imageUrl: "/images/event-conference.jpg",
   },
   {
     title: "Nursing Research & Evidence-Based Practice Workshop",
@@ -45,6 +46,7 @@ const events = [
     priceKobo: 500000,
     capacity: 80,
     status: "published",
+    imageUrl: "/images/event-workshop.jpg",
   },
 ];
 

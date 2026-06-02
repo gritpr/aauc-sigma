@@ -1,13 +1,22 @@
 import { z } from "zod";
-import path from "path";
 
-const serverSchema = z.object({
-  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().min(1),
-  PAYSTACK_SECRET_KEY: z.string().optional(),
-  EMAIL_PROVIDER: z.enum(["stub", "firebase_extension"]).default("stub"),
-  FIREBASE_MAIL_COLLECTION: z.string().default("mail"),
-  NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
-});
+const serverSchema = z
+  .object({
+    FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
+    PAYSTACK_SECRET_KEY: z.string().optional(),
+    EMAIL_PROVIDER: z.enum(["stub", "firebase_extension"]).default("stub"),
+    FIREBASE_MAIL_COLLECTION: z.string().default("mail"),
+    NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  })
+  .refine(
+    (data) =>
+      Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) ||
+      Boolean(data.FIREBASE_SERVICE_ACCOUNT_PATH),
+    {
+      message:
+        "Set FIREBASE_SERVICE_ACCOUNT_JSON (Vercel) or FIREBASE_SERVICE_ACCOUNT_PATH (local).",
+    }
+  );
 
 const clientSchema = z.object({
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string().min(1),
@@ -40,7 +49,6 @@ export function getServerEnv() {
 
   return {
     ...raw,
-    serviceAccountPath: path.resolve(process.cwd(), raw.FIREBASE_SERVICE_ACCOUNT_PATH),
     siteUrl: raw.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   };
 }

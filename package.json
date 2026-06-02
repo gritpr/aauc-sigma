@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:events": "node scripts/seed-events.mjs"
+    "seed:events": "node scripts/seed-events.mjs",
+    "seed:conference": "node scripts/seed-conference.mjs"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",

@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { siteConfig, getFullChapterName } from "@/config/site";
+import { siteImages } from "@/config/images";
 
 const sections = [
   {
@@ -23,11 +25,23 @@ const sections = [
 export function AboutSections() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <AnimatedSection>
-        <h1 className="text-4xl font-bold text-gray-900">About Us</h1>
-        <p className="mt-4 max-w-2xl text-lg text-gray-600">
-          Learn about {siteConfig.chapterName} Chapter and our connection to Sigma Nursing.
-        </p>
+      <AnimatedSection className="grid items-center gap-10 lg:grid-cols-2">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900">About Us</h1>
+          <p className="mt-4 max-w-xl text-lg text-gray-600">
+            Learn about {siteConfig.chapterName} Chapter and our connection to Sigma Nursing.
+          </p>
+        </div>
+        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-xl ring-1 ring-[#5E50A1]/10">
+          <Image
+            src={siteImages.about}
+            alt="Nursing professionals in clinical setting"
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority
+          />
+        </div>
       </AnimatedSection>
 
       <div className="mt-16 space-y-12">
