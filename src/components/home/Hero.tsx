@@ -8,18 +8,6 @@ import { siteImages } from "@/config/images";
 import { Button } from "@/components/ui/Button";
 import { SigmaLogo } from "@/components/ui/SigmaLogo";
 
-const highlights = [
-  { label: "Chapter", value: `#${siteConfig.chapterNumber}`, accent: "gold" as const },
-  { label: "Institution", value: "OAU", accent: "teal" as const },
-  { label: "Location", value: "Ile-Ife", accent: "coral" as const },
-];
-
-const accentBadge: Record<(typeof highlights)[number]["accent"], string> = {
-  gold: "bg-accent-gold/25 text-accent-gold ring-accent-gold/40",
-  teal: "bg-accent-teal/25 text-accent-teal ring-accent-teal/40",
-  coral: "bg-accent-coral/25 text-accent-coral ring-accent-coral/40",
-};
-
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-light text-white">
@@ -46,15 +34,7 @@ export function Hero() {
           >
             <SigmaLogo variant="hero" showChapterName={false} />
           </motion.div>
-          <motion.p
-            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-gold ring-1 ring-accent-gold/30"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-accent-gold" />
-            {siteConfig.chapterName} · #{siteConfig.chapterNumber}
-          </motion.p>
+
           <motion.h1
             className="mt-3 text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl"
             initial={{ opacity: 0, y: 24 }}
@@ -69,9 +49,9 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Take your place among the world&apos;s top nurses. {siteConfig.chapterName}{" "}
-            Chapter at {siteConfig.institution} empowers nurse leaders to drive meaningful
-            change in healthcare.
+            Take your place among the world&apos;s top nurses.{" "}
+            {siteConfig.chapterName} Chapter at {siteConfig.institution}{" "}
+            empowers nurse leaders to drive meaningful change in healthcare.
           </motion.p>
           <motion.div
             className="mt-8 flex flex-wrap gap-3"
@@ -104,29 +84,6 @@ export function Hero() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/60 to-transparent" />
         </motion.div>
-      </div>
-
-      <div className="relative border-t border-white/15 bg-black/15 backdrop-blur-sm">
-        <div className="page-container grid grid-cols-3 gap-3 py-4 sm:gap-6">
-          {highlights.map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.35 + i * 0.08 }}
-              className="text-center sm:text-left"
-            >
-              <p className="text-[10px] font-medium uppercase tracking-wider text-white/60 sm:text-xs">
-                {item.label}
-              </p>
-              <p
-                className={`mt-1 inline-block rounded-md px-2 py-0.5 text-sm font-bold ring-1 sm:text-base ${accentBadge[item.accent]}`}
-              >
-                {item.value}
-              </p>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );

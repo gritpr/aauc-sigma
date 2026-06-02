@@ -7,6 +7,9 @@
   --color-accent-gold: #d4a843;
   --color-accent-teal: #2a9d8f;
   --color-accent-coral: #e07a5f;
+  --color-accent-gold-vivid: #f5b800;
+  --color-accent-teal-vivid: #00c896;
+  --color-accent-coral-vivid: #ff5c38;
   --color-surface: #faf9fc;
   --color-surface-lavender: #ede9f5;
   --color-surface-mint: #e8f5f2;
@@ -23,6 +26,9 @@
   --color-accent-gold: var(--color-accent-gold);
   --color-accent-teal: var(--color-accent-teal);
   --color-accent-coral: var(--color-accent-coral);
+  --color-accent-gold-vivid: var(--color-accent-gold-vivid);
+  --color-accent-teal-vivid: var(--color-accent-teal-vivid);
+  --color-accent-coral-vivid: var(--color-accent-coral-vivid);
   --color-surface: var(--color-surface);
   --color-surface-lavender: var(--color-surface-lavender);
   --color-surface-mint: var(--color-surface-mint);

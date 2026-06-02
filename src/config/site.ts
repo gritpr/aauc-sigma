@@ -1,7 +1,7 @@
 export const siteConfig = {
   parentOrg: "Sigma Theta Tau International Honor Society of Nursing",
   chapterName: "Alpha Alpha Upsilon",
-  chapterNumber: "5940",
+  chapterNumber: "594",
   siteTitle: "Alpha Alpha Upsilon Chapter",
   siteTagline: "Lead Together — Right Where You Are",
   institution: "Obafemi Awolowo University",
