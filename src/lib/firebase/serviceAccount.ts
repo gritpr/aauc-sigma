@@ -13,21 +13,29 @@ function normalizePrivateKey(account: ServiceAccountJson): ServiceAccountJson {
   return account;
 }
 
+function parseServiceAccountJson(raw: string): ServiceAccount {
+  const account = JSON.parse(raw.trim()) as ServiceAccountJson;
+  return normalizePrivateKey(account);
+}
+
 /** Local dev: file path. Vercel/production: FIREBASE_SERVICE_ACCOUNT_JSON env var. */
 export function loadServiceAccount(): ServiceAccount {
   const jsonEnv = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
   if (jsonEnv?.trim()) {
-    const account = JSON.parse(jsonEnv) as ServiceAccountJson;
-    return normalizePrivateKey(account);
+    return parseServiceAccountJson(jsonEnv);
   }
 
-  const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
   if (!filePath) {
     throw new Error(
       "Firebase Admin credentials missing. Set FIREBASE_SERVICE_ACCOUNT_JSON (Vercel) " +
-        "or FIREBASE_SERVICE_ACCOUNT_PATH (local file)."
+        "or FIREBASE_SERVICE_ACCOUNT_PATH (local file path only)."
     );
+  }
+
+  // Misconfiguration guard: JSON pasted into PATH instead of FIREBASE_SERVICE_ACCOUNT_JSON.
+  if (filePath.startsWith("{")) {
+    return parseServiceAccountJson(filePath);
   }
 
   const resolved = path.resolve(process.cwd(), filePath);
