@@ -30,7 +30,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Header />
-        <main className="min-h-[60vh]">{children}</main>
+        <main className="min-h-[60vh] bg-gradient-mesh">{children}</main>
         <Footer />
       </body>
     </html>

@@ -24,7 +24,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
     >
       <Link
         href={href}
-        className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5E50A1]"
+        className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-gold/40 hover:shadow-lg hover:shadow-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
@@ -32,29 +32,29 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
             alt={event.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 100vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          <p className="absolute bottom-3 left-4 text-sm font-medium text-white">
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
+          <p className="absolute bottom-3 left-3 rounded-md bg-accent-gold/90 px-2 py-0.5 text-xs font-bold text-primary-dark">
             {formatEventDateRange(event.startDate, event.endDate)}
           </p>
         </div>
-        <div className="flex flex-1 flex-col p-6">
+        <div className="flex flex-1 flex-col p-5">
           {event.subtitle && (
-            <p className="text-xs font-medium uppercase tracking-wide text-[#5E50A1]">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-accent-teal">
               {event.subtitle}
             </p>
           )}
-          <h3 className="mt-1 text-xl font-semibold text-gray-900 group-hover:text-[#5E50A1] transition-colors">
+          <h3 className="mt-1 text-lg font-semibold text-gray-900 transition-colors group-hover:text-primary">
             {event.title}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">{event.location}</p>
-          <p className="mt-4 flex-1 line-clamp-2 text-gray-600">{event.description}</p>
-          <div className="mt-6 flex items-center justify-between gap-4">
-            <span className="text-lg font-bold text-gray-900">
+          <p className="mt-1 text-xs text-gray-500">{event.location}</p>
+          <p className="mt-3 flex-1 line-clamp-2 text-sm text-gray-600">{event.description}</p>
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-primary/10 pt-4">
+            <span className="text-base font-bold text-accent-coral">
               From {formatNairaFromKobo(event.priceKobo)}
             </span>
-            <span className="rounded-full bg-[#5E50A1] px-5 py-2.5 text-sm font-semibold text-white">
+            <span className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors group-hover:bg-primary-dark">
               View details
             </span>
           </div>

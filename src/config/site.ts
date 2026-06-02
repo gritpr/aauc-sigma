@@ -7,6 +7,9 @@ export const siteConfig = {
   institution: "Obafemi Awolowo University",
   location: "Ile-Ife, Osun State, Nigeria",
   primaryColor: "#5E50A1",
+  accentGold: "#D4A843",
+  accentTeal: "#2A9D8F",
+  accentCoral: "#E07A5F",
   parentSiteUrl: "https://www.sigmanursing.org",
 } as const;
 
