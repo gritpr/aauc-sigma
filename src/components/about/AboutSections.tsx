@@ -46,7 +46,7 @@ export function AboutSections() {
             <div className="relative aspect-[4/3] overflow-hidden rounded-xl shadow-xl ring-2 ring-accent-gold/30">
               <Image
                 src={siteImages.about}
-                alt="Nursing professionals in clinical setting"
+                alt="Obafemi Awolowo University Teaching Hospital, Ile-Ife"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"

@@ -20,7 +20,7 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
       <div className="relative h-40 overflow-hidden sm:h-48">
         <Image
           src={siteImages.events.conference}
-          alt="Chapter events"
+          alt="OAU campus landscape, Ile-Ife"
           fill
           className="object-cover"
           priority

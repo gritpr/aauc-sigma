@@ -14,12 +14,13 @@ export function Hero() {
       <div className="absolute inset-0 bg-dots opacity-40" />
       <div className="absolute inset-0">
         <Image
-          src={siteImages.hero}
-          alt="Nurses collaborating — Sigma Nursing"
+          src={siteImages.heroCampus}
+          alt=""
           fill
           className="object-cover opacity-20 mix-blend-overlay"
           priority
           sizes="100vw"
+          aria-hidden
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/95 via-primary/88 to-primary/75" />
       </div>
@@ -76,7 +77,7 @@ export function Hero() {
         >
           <Image
             src={siteImages.hero}
-            alt="Sigma Nursing — nurses at work"
+            alt="African nurse in clinical uniform"
             fill
             className="object-cover"
             sizes="(max-width: 1024px) 50vw, 480px"

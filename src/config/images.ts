@@ -1,16 +1,25 @@
 /** Central image paths — swap files in /public/images/ to update site-wide */
 export const siteImages = {
   sigmaLogo: "/images/sigma-logo.png",
+  /** Wiki Loves Africa 2021 — Ghanaian nurse (CC BY-SA 4.0) */
   hero: "/images/hero-nurses.jpg",
+  /** OAU campus landscape (CC BY-SA 4.0, Tufoto) */
+  heroCampus: "/images/event-conference.jpg",
+  /** OAU Teaching Hospital, Ile-Ife (CC BY 2.0, T. Obi) */
   about: "/images/about-nursing.jpg",
   features: {
+    /** Oduduwa statue, OAU campus (CC BY-SA 4.0, Tufoto) */
     leadership: "/images/feature-leadership.jpg",
+    /** OAU main campus (CC BY 2.0, T. Obi) */
     community: "/images/feature-community.jpg",
+    /** Faculty of Medicine, OAU (CC BY 2.0, T. Obi) */
     excellence: "/images/feature-excellence.jpg",
   },
   events: {
+    /** OAU campus landscape (CC BY-SA 4.0, Tufoto) */
     default: "/images/event-conference.jpg",
     conference: "/images/conference-flier.jpeg",
+    /** OAU Teaching Hospital (CC BY 2.0, T. Obi) */
     workshop: "/images/event-workshop.jpg",
   },
 } as const;

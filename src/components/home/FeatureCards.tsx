@@ -8,6 +8,7 @@ const features = [
     description:
       "Every nurse is a leader—at every stage, in every role. Sigma empowers you to lead together, right where you are.",
     image: siteImages.features.leadership,
+    imageAlt: "Oduduwa statue at Obafemi Awolowo University, Ile-Ife",
     accent: "border-t-accent-gold-vivid",
     overlay: "from-amber-950/65 via-amber-800/20 to-transparent",
     badge: "bg-accent-gold-vivid text-amber-950",
@@ -17,6 +18,7 @@ const features = [
     description:
       "Connect with professional colleagues globally. Build mentorship, research collaboration, and lifelong networks.",
     image: siteImages.features.community,
+    imageAlt: "Main campus, Obafemi Awolowo University, Ile-Ife",
     accent: "border-t-accent-teal-vivid",
     overlay: "from-emerald-950/65 via-emerald-800/20 to-transparent",
     badge: "bg-accent-teal-vivid text-white",
@@ -26,6 +28,7 @@ const features = [
     description:
       "Access grants, continuing education, and scholarships. Pursue evidence-based practice and nursing research.",
     image: siteImages.features.excellence,
+    imageAlt: "Faculty of Medicine, Obafemi Awolowo University, Ile-Ife",
     accent: "border-t-accent-coral-vivid",
     overlay: "from-orange-950/65 via-orange-800/20 to-transparent",
     badge: "bg-accent-coral-vivid text-white",
@@ -58,7 +61,7 @@ export function FeatureCards() {
               <div className="relative aspect-[16/10] overflow-hidden">
                 <Image
                   src={feature.image}
-                  alt={feature.title}
+                  alt={feature.imageAlt}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, 33vw"
