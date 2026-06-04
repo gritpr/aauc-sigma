@@ -14,10 +14,10 @@ export function Hero() {
       <div className="absolute inset-0 bg-dots opacity-40" />
       <div className="absolute inset-0">
         <Image
-          src={siteImages.heroCampus}
+          src={siteImages.heroBg}
           alt=""
           fill
-          className="object-cover opacity-20 mix-blend-overlay"
+          className="object-cover opacity-60 mix-blend-overlay"
           priority
           sizes="100vw"
           aria-hidden
@@ -25,13 +25,31 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/95 via-primary/88 to-primary/75" />
       </div>
 
-      <div className="page-container relative grid items-center gap-8 py-12 lg:grid-cols-2 lg:py-16">
-        <div>
+      {/* Right hero image — full height, flush to viewport edge */}
+      <motion.div
+        className="absolute inset-y-0 right-0 hidden w-1/2 lg:block"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <Image
+          src={siteImages.hero}
+          alt="hero image"
+          fill
+          className="object-cover object-center"
+          sizes="50vw"
+          priority
+        />
+        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-primary/90 to-transparent" />
+      </motion.div>
+
+      <div className="page-container relative z-10 lg:min-h-[min(72vh,640px)]">
+        <div className="flex max-w-xl flex-col justify-center py-12 lg:max-w-none lg:w-1/2 lg:py-16 lg:pr-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="mb-5 inline-flex rounded-xl bg-white/95 p-3 shadow-lg ring-2 ring-accent-gold/30"
+            className="mb-5 w-fit rounded-xl bg-white/95 p-3 shadow-lg ring-2 ring-accent-gold/30"
           >
             <SigmaLogo variant="hero" showChapterName={false} />
           </motion.div>
@@ -68,23 +86,6 @@ export function Hero() {
             </Link>
           </motion.div>
         </div>
-
-        <motion.div
-          className="relative hidden aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl ring-2 ring-accent-gold/40 lg:block"
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <Image
-            src={siteImages.hero}
-            alt="African nurse in clinical uniform"
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 50vw, 480px"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/60 to-transparent" />
-        </motion.div>
       </div>
     </section>
   );

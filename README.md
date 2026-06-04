@@ -18,7 +18,6 @@ Next.js landing site for **Sigma Nursing — Alpha Alpha Upsilon Chapter (#5940)
 npm install
 cp .env.example .env.local
 # Add firebase-service-account.json and fill .env.local
-npm run seed:events   # optional: sample events
 npm run dev
 ```
 
@@ -37,7 +36,7 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Enable **Firestore** in [Firebase Console](https://console.firebase.google.com).
 2. Deploy security rules from [`firebase/firestore.rules`](firebase/firestore.rules) (Console → Firestore → Rules, or `firebase deploy --only firestore:rules`).
 3. Create composite index: collection `events`, fields `status` (Ascending) + `startDate` (Ascending) — or deploy [`firebase/firestore.indexes.json`](firebase/firestore.indexes.json).
-4. Add events manually or run `npm run seed:events`.
+4. Add and publish events in **Firebase Console** → Firestore → `events` collection (`status: "published"`).
 
 ### Export registrations as CSV
 
@@ -82,7 +81,6 @@ Local development can keep using `FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-servi
 |---------|-------------|
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm run seed:events` | Seed sample published events |
 
 ## License
 
