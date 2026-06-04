@@ -20,10 +20,10 @@ export interface EventContact {
 }
 
 export interface AbstractSubmissionInfo {
-  wordLimit: number;
-  structure: string;
-  keywordsCount: number;
-  formats: string[];
+  wordLimit?: number;
+  structure?: string;
+  keywordsCount?: number;
+  formats?: string[];
   guidelines?: string;
 }
 

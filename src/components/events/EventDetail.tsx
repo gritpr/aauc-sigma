@@ -155,21 +155,30 @@ export function EventDetail({ event }: EventDetailProps) {
           <section className="mt-8 rounded-xl border border-accent-teal/20 bg-surface-mint p-5">
             <h2 className="text-lg font-semibold text-accent-teal">Call for abstracts</h2>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
-              <li>
-                <strong>Word limit:</strong> Maximum {event.abstractSubmission.wordLimit}{" "}
-                words
-              </li>
-              <li>
-                <strong>Structure:</strong> {event.abstractSubmission.structure}
-              </li>
-              <li>
-                <strong>Keywords:</strong> Include {event.abstractSubmission.keywordsCount}{" "}
-                keywords
-              </li>
-              <li>
-                <strong>Formats:</strong>{" "}
-                {event.abstractSubmission.formats.join(" · ")}
-              </li>
+              {event.abstractSubmission.wordLimit != null && (
+                <li>
+                  <strong>Word limit:</strong> Maximum{" "}
+                  {event.abstractSubmission.wordLimit} words
+                </li>
+              )}
+              {event.abstractSubmission.structure && (
+                <li>
+                  <strong>Structure:</strong> {event.abstractSubmission.structure}
+                </li>
+              )}
+              {event.abstractSubmission.keywordsCount != null && (
+                <li>
+                  <strong>Keywords:</strong> Include{" "}
+                  {event.abstractSubmission.keywordsCount} keywords
+                </li>
+              )}
+              {event.abstractSubmission.formats &&
+                event.abstractSubmission.formats.length > 0 && (
+                  <li>
+                    <strong>Formats:</strong>{" "}
+                    {event.abstractSubmission.formats.join(" · ")}
+                  </li>
+                )}
             </ul>
             {event.abstractSubmission.guidelines && (
               <div className="mt-4 rounded-lg border border-accent-teal/30 bg-white/80 p-4">

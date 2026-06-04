@@ -6,7 +6,13 @@ import {
   getParticipantStatusOptions,
   isConferenceEvent,
 } from "@/lib/registration/pricing";
-import { validateRegistrationPhoto } from "@/lib/validation/registration";
+import {
+  validateConferenceRegistrationForm,
+  validateRegistrationPhoto,
+  validateStandardRegistrationForm,
+  zodToFieldErrors,
+  type FieldErrors,
+} from "@/lib/validation/registration";
 import { formatNairaFromKobo } from "@/lib/utils/format";
 import type { ChapterEvent } from "@/types/event";
 import type { ParticipantStatus } from "@/types/registration";
@@ -19,12 +25,24 @@ interface RegistrationFormProps {
 const inputClass =
   "w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
+const inputErrorClass =
+  "border-red-400 focus:border-red-500 focus:ring-red-200";
+
 const GENDER_OPTIONS = [
   { value: "female", label: "Female" },
   { value: "male", label: "Male" },
   { value: "non_binary", label: "Non-binary" },
   { value: "prefer_not_to_say", label: "Prefer not to say" },
-];
+] as const;
+
+function fieldClass(hasError: boolean) {
+  return `${inputClass}${hasError ? ` ${inputErrorClass}` : ""}`;
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+}
 
 export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
   const conference = isConferenceEvent(event);
@@ -35,6 +53,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [selectedStatus, setSelectedStatus] = useState<ParticipantStatus>("member");
 
   const selectedAmount = useMemo(() => {
@@ -42,30 +61,39 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
     return option?.amountKobo ?? event.priceKobo;
   }, [statusOptions, selectedStatus, event.priceKobo]);
 
+  function clearFieldError(name: string) {
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }
+
   async function handleStandardSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
 
     const form = new FormData(e.currentTarget);
-    const body = {
-      eventId: event.id,
-      fullName: form.get("fullName") as string,
-      email: form.get("email") as string,
-      phone: form.get("phone") as string,
-      organization: (form.get("organization") as string) || undefined,
-      role: (form.get("role") as string) || undefined,
-    };
+    const parsed = validateStandardRegistrationForm(form, event.id);
+
+    if (!parsed.success) {
+      setFieldErrors(zodToFieldErrors(parsed.error));
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(parsed.data),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(parseApiError(data));
+        throw new Error(parseApiError(data, setFieldErrors));
       }
       if (data.authorizationUrl) {
         window.location.href = data.authorizationUrl;
@@ -83,6 +111,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
 
     const form = new FormData(e.currentTarget);
     const picture = form.get("picture");
@@ -91,12 +120,30 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       picture instanceof File ? picture : null
     );
     if (photoError) {
-      setError(photoError);
+      setFieldErrors({ picture: photoError });
       setLoading(false);
       return;
     }
 
-    form.set("eventId", event.id);
+    const parsed = validateConferenceRegistrationForm(form, event.id);
+    if (!parsed.success) {
+      setFieldErrors(zodToFieldErrors(parsed.error));
+      setLoading(false);
+      return;
+    }
+
+    const data = parsed.data;
+    form.set("eventId", data.eventId);
+    form.set("fullName", data.fullName);
+    form.set("email", data.email);
+    form.set("phone", data.phone);
+    form.set("role", data.role);
+    form.set("cadre", data.cadre);
+    form.set("preferredNameOnCertificate", data.preferredNameOnCertificate);
+    form.set("participantStatus", data.participantStatus);
+    form.set("gender", data.gender);
+    form.set("industry", data.industry);
+    form.set("institution", data.institution);
 
     try {
       const res = await fetch("/api/registrations", {
@@ -105,7 +152,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(parseApiError(data));
+        throw new Error(parseApiError(data, setFieldErrors));
       }
       if (data.paymentUrl) {
         window.open(data.paymentUrl, "_blank", "noopener,noreferrer");
@@ -126,7 +173,11 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
 
   if (conference) {
     return (
-      <form onSubmit={handleConferenceSubmit} className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+      <form
+        onSubmit={handleConferenceSubmit}
+        noValidate
+        className="max-h-[70vh] space-y-4 overflow-y-auto pr-1"
+      >
         <p className="text-sm text-gray-600">
           Registering for: <strong>{event.title}</strong>
         </p>
@@ -136,31 +187,72 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
             <label htmlFor="fullName" className="mb-1 block text-sm font-medium text-gray-700">
               Full name *
             </label>
-            <input id="fullName" name="fullName" required className={inputClass} />
+            <input
+              id="fullName"
+              name="fullName"
+              autoComplete="name"
+              className={fieldClass(Boolean(fieldErrors.fullName))}
+              aria-invalid={Boolean(fieldErrors.fullName)}
+              onChange={() => clearFieldError("fullName")}
+            />
+            <FieldError message={fieldErrors.fullName} />
           </div>
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
               Email *
             </label>
-            <input id="email" name="email" type="email" required className={inputClass} />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              className={fieldClass(Boolean(fieldErrors.email))}
+              aria-invalid={Boolean(fieldErrors.email)}
+              onChange={() => clearFieldError("email")}
+            />
+            <FieldError message={fieldErrors.email} />
           </div>
           <div>
             <label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700">
               Phone *
             </label>
-            <input id="phone" name="phone" type="tel" required className={inputClass} />
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="e.g. 08012345678"
+              className={fieldClass(Boolean(fieldErrors.phone))}
+              aria-invalid={Boolean(fieldErrors.phone)}
+              onChange={() => clearFieldError("phone")}
+            />
+            <FieldError message={fieldErrors.phone} />
           </div>
           <div>
             <label htmlFor="role" className="mb-1 block text-sm font-medium text-gray-700">
               Role *
             </label>
-            <input id="role" name="role" required className={inputClass} />
+            <input
+              id="role"
+              name="role"
+              className={fieldClass(Boolean(fieldErrors.role))}
+              aria-invalid={Boolean(fieldErrors.role)}
+              onChange={() => clearFieldError("role")}
+            />
+            <FieldError message={fieldErrors.role} />
           </div>
           <div>
             <label htmlFor="cadre" className="mb-1 block text-sm font-medium text-gray-700">
               Cadre *
             </label>
-            <input id="cadre" name="cadre" required className={inputClass} />
+            <input
+              id="cadre"
+              name="cadre"
+              className={fieldClass(Boolean(fieldErrors.cadre))}
+              aria-invalid={Boolean(fieldErrors.cadre)}
+              onChange={() => clearFieldError("cadre")}
+            />
+            <FieldError message={fieldErrors.cadre} />
           </div>
           <div className="sm:col-span-2">
             <label
@@ -172,15 +264,24 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
             <input
               id="preferredNameOnCertificate"
               name="preferredNameOnCertificate"
-              required
-              className={inputClass}
+              className={fieldClass(Boolean(fieldErrors.preferredNameOnCertificate))}
+              aria-invalid={Boolean(fieldErrors.preferredNameOnCertificate)}
+              onChange={() => clearFieldError("preferredNameOnCertificate")}
             />
+            <FieldError message={fieldErrors.preferredNameOnCertificate} />
           </div>
           <div>
             <label htmlFor="gender" className="mb-1 block text-sm font-medium text-gray-700">
               Gender *
             </label>
-            <select id="gender" name="gender" required className={inputClass} defaultValue="">
+            <select
+              id="gender"
+              name="gender"
+              defaultValue=""
+              className={fieldClass(Boolean(fieldErrors.gender))}
+              aria-invalid={Boolean(fieldErrors.gender)}
+              onChange={() => clearFieldError("gender")}
+            >
               <option value="" disabled>
                 Select gender
               </option>
@@ -190,18 +291,33 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
                 </option>
               ))}
             </select>
+            <FieldError message={fieldErrors.gender} />
           </div>
           <div>
             <label htmlFor="industry" className="mb-1 block text-sm font-medium text-gray-700">
               Industry *
             </label>
-            <input id="industry" name="industry" required className={inputClass} />
+            <input
+              id="industry"
+              name="industry"
+              className={fieldClass(Boolean(fieldErrors.industry))}
+              aria-invalid={Boolean(fieldErrors.industry)}
+              onChange={() => clearFieldError("industry")}
+            />
+            <FieldError message={fieldErrors.industry} />
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="institution" className="mb-1 block text-sm font-medium text-gray-700">
               Institution *
             </label>
-            <input id="institution" name="institution" required className={inputClass} />
+            <input
+              id="institution"
+              name="institution"
+              className={fieldClass(Boolean(fieldErrors.institution))}
+              aria-invalid={Boolean(fieldErrors.institution)}
+              onChange={() => clearFieldError("institution")}
+            />
+            <FieldError message={fieldErrors.institution} />
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="picture" className="mb-1 block text-sm font-medium text-gray-700">
@@ -212,14 +328,22 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
               name="picture"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              required
-              className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-sm file:font-medium file:text-primary`}
+              className={`${fieldClass(Boolean(fieldErrors.picture))} file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-sm file:font-medium file:text-primary`}
+              aria-invalid={Boolean(fieldErrors.picture)}
+              onChange={() => clearFieldError("picture")}
             />
             <p className="mt-1 text-xs text-gray-500">JPEG, PNG, or WebP. Max 5 MB.</p>
+            <FieldError message={fieldErrors.picture} />
           </div>
         </div>
 
-        <fieldset className="rounded-xl border border-primary/15 bg-surface p-4">
+        <fieldset
+          className={`rounded-xl border bg-surface p-4 ${
+            fieldErrors.participantStatus
+              ? "border-red-400"
+              : "border-primary/15"
+          }`}
+        >
           <legend className="px-1 text-sm font-semibold text-gray-900">
             Status * <span className="font-normal text-gray-500">(sets your fee)</span>
           </legend>
@@ -238,9 +362,11 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
                     type="radio"
                     name="participantStatus"
                     value={option.value}
-                    required
                     checked={selectedStatus === option.value}
-                    onChange={() => setSelectedStatus(option.value)}
+                    onChange={() => {
+                      setSelectedStatus(option.value);
+                      clearFieldError("participantStatus");
+                    }}
                     className="text-primary focus:ring-primary"
                   />
                   <span className="text-sm font-medium text-gray-900">{option.label}</span>
@@ -251,6 +377,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
               </label>
             ))}
           </div>
+          <FieldError message={fieldErrors.participantStatus} />
         </fieldset>
 
         <p className="text-center text-sm text-gray-600">
@@ -273,7 +400,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
   }
 
   return (
-    <form onSubmit={handleStandardSubmit} className="space-y-4">
+    <form onSubmit={handleStandardSubmit} noValidate className="space-y-4">
       <p className="text-sm text-gray-600">
         Registering for: <strong>{event.title}</strong>
       </p>
@@ -281,31 +408,72 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
         <label htmlFor="fullName" className="mb-1 block text-sm font-medium text-gray-700">
           Full name *
         </label>
-        <input id="fullName" name="fullName" required className={inputClass} />
+        <input
+          id="fullName"
+          name="fullName"
+          autoComplete="name"
+          className={fieldClass(Boolean(fieldErrors.fullName))}
+          aria-invalid={Boolean(fieldErrors.fullName)}
+          onChange={() => clearFieldError("fullName")}
+        />
+        <FieldError message={fieldErrors.fullName} />
       </div>
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
           Email *
         </label>
-        <input id="email" name="email" type="email" required className={inputClass} />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          className={fieldClass(Boolean(fieldErrors.email))}
+          aria-invalid={Boolean(fieldErrors.email)}
+          onChange={() => clearFieldError("email")}
+        />
+        <FieldError message={fieldErrors.email} />
       </div>
       <div>
         <label htmlFor="phone" className="mb-1 block text-sm font-medium text-gray-700">
           Phone *
         </label>
-        <input id="phone" name="phone" type="tel" required className={inputClass} />
+        <input
+          id="phone"
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          placeholder="e.g. 08012345678"
+          className={fieldClass(Boolean(fieldErrors.phone))}
+          aria-invalid={Boolean(fieldErrors.phone)}
+          onChange={() => clearFieldError("phone")}
+        />
+        <FieldError message={fieldErrors.phone} />
       </div>
       <div>
         <label htmlFor="organization" className="mb-1 block text-sm font-medium text-gray-700">
           Organization
         </label>
-        <input id="organization" name="organization" className={inputClass} />
+        <input
+          id="organization"
+          name="organization"
+          className={fieldClass(Boolean(fieldErrors.organization))}
+          aria-invalid={Boolean(fieldErrors.organization)}
+          onChange={() => clearFieldError("organization")}
+        />
+        <FieldError message={fieldErrors.organization} />
       </div>
       <div>
         <label htmlFor="role" className="mb-1 block text-sm font-medium text-gray-700">
           Role / title
         </label>
-        <input id="role" name="role" className={inputClass} />
+        <input
+          id="role"
+          name="role"
+          className={fieldClass(Boolean(fieldErrors.role))}
+          aria-invalid={Boolean(fieldErrors.role)}
+          onChange={() => clearFieldError("role")}
+        />
+        <FieldError message={fieldErrors.role} />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={loading} className="w-full">
@@ -315,15 +483,25 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
   );
 }
 
-function parseApiError(data: unknown): string {
+function parseApiError(
+  data: unknown,
+  setFieldErrors: (errors: FieldErrors) => void
+): string {
   if (typeof data === "object" && data !== null && "error" in data) {
     const err = (data as { error: unknown }).error;
     if (typeof err === "string") return err;
     if (typeof err === "object" && err !== null) {
-      const messages = Object.values(err as Record<string, string[] | undefined>)
-        .flat()
-        .filter(Boolean);
-      if (messages.length) return messages.join(". ");
+      const fieldMap: FieldErrors = {};
+      for (const [key, messages] of Object.entries(
+        err as Record<string, string[] | undefined>
+      )) {
+        const first = messages?.[0];
+        if (first) fieldMap[key] = first;
+      }
+      if (Object.keys(fieldMap).length > 0) {
+        setFieldErrors(fieldMap);
+        return "Please fix the errors below and try again.";
+      }
     }
   }
   return "Registration failed. Please try again.";
