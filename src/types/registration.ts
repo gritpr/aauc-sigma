@@ -4,6 +4,8 @@ export type RegistrationStatus =
   | "confirmed"
   | "cancelled";
 
+export type ParticipantStatus = "member" | "non_member" | "student";
+
 export interface Registration {
   id: string;
   eventId: string;
@@ -13,6 +15,13 @@ export interface Registration {
   phone: string;
   organization?: string;
   role?: string;
+  cadre?: string;
+  preferredNameOnCertificate?: string;
+  photoUrl?: string;
+  participantStatus?: ParticipantStatus;
+  gender?: string;
+  industry?: string;
+  institution?: string;
   status: RegistrationStatus;
   amount: number;
   currency: string;
@@ -30,4 +39,11 @@ export interface CreateRegistrationInput {
   phone: string;
   organization?: string;
   role?: string;
+  cadre?: string;
+  preferredNameOnCertificate?: string;
+  photoUrl?: string;
+  participantStatus?: ParticipantStatus;
+  gender?: string;
+  industry?: string;
+  institution?: string;
 }

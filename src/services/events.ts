@@ -47,7 +47,9 @@ export async function getEventById(id: string): Promise<ChapterEvent | null> {
   return mapDoc(doc.id, data);
 }
 
-export async function getEventBySlug(slug: string): Promise<ChapterEvent | null> {
+export async function getEventBySlug(
+  slug: string,
+): Promise<ChapterEvent | null> {
   const snapshot = await getAdminDb()
     .collection("events")
     .where("slug", "==", slug)

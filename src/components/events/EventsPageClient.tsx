@@ -19,7 +19,7 @@ export function EventsPageClient({ events }: EventsPageClientProps) {
     <>
       <div className="relative h-40 overflow-hidden sm:h-48">
         <Image
-          src={siteImages.events.conference}
+          src={siteImages.eventsBanner}
           alt="Conference event"
           fill
           className="object-cover"

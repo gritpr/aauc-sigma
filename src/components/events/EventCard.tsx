@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatEventDateRange, formatNairaFromKobo } from "@/lib/utils/format";
-import { getEventImageUrl } from "@/config/images";
+import { getEventCardImageUrl } from "@/lib/events/image";
+import { EventCoverImage } from "./EventCoverImage";
 import type { ChapterEvent } from "@/types/event";
 
 interface EventCardProps {
@@ -13,7 +13,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, index = 0 }: EventCardProps) {
-  const imageSrc = getEventImageUrl(event.imageUrl, event.slug);
+  const imageSrc = getEventCardImageUrl(event);
   const href = `/events/${event.slug}`;
 
   return (
@@ -27,12 +27,11 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
         className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-gold/40 hover:shadow-lg hover:shadow-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <div className="relative aspect-[16/10] overflow-hidden">
-          <Image
+          <EventCoverImage
             src={imageSrc}
             alt={event.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 33vw"
+            className="transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
           <p className="absolute bottom-3 left-3 rounded-md bg-accent-gold/90 px-2 py-0.5 text-xs font-bold text-primary-dark">

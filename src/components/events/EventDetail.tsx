@@ -1,37 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { RegistrationForm } from "./RegistrationForm";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { formatEventDateRange, formatNairaFromKobo } from "@/lib/utils/format";
-import { getEventImageUrl } from "@/config/images";
+import { getEventDetailImageUrl } from "@/lib/events/image";
+import { EventCoverImage } from "./EventCoverImage";
 import type { ChapterEvent } from "@/types/event";
 
 interface EventDetailProps {
   event: ChapterEvent;
 }
 
+function extractEmail(text: string): string {
+  const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  return match?.[0] ?? "";
+}
+
 export function EventDetail({ event }: EventDetailProps) {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams.get("payment");
   const [registerOpen, setRegisterOpen] = useState(false);
-  const heroImage = getEventImageUrl(
-    event.flierImageUrl ?? event.imageUrl,
-    event.slug
-  );
+  const heroImage = getEventDetailImageUrl(event);
 
   return (
     <article>
-      <div className="relative aspect-[3/4] max-h-[520px] w-full overflow-hidden bg-[#5E50A1]/10 sm:aspect-[21/9] sm:max-h-none">
-        <Image
+      <div className="relative aspect-[3/4] max-h-[520px] w-full overflow-hidden bg-primary/10 sm:aspect-[21/9] sm:max-h-none">
+        <EventCoverImage
           src={heroImage}
           alt={`${event.title} flier`}
-          fill
-          className="object-contain sm:object-cover"
+          fit="contain"
+          className="sm:object-cover"
           priority
           sizes="100vw"
         />
@@ -115,8 +117,7 @@ export function EventDetail({ event }: EventDetailProps) {
               ))}
             </ul>
             <p className="mt-2 text-xs text-gray-500">
-              Online registration uses the member rate ({formatNairaFromKobo(event.priceKobo)}).
-              Contact the chapter for other tiers.
+              Your registration fee is based on the status you select when registering.
             </p>
           </section>
         )}
@@ -170,6 +171,27 @@ export function EventDetail({ event }: EventDetailProps) {
                 {event.abstractSubmission.formats.join(" · ")}
               </li>
             </ul>
+            {event.abstractSubmission.guidelines && (
+              <div className="mt-4 rounded-lg border border-accent-teal/30 bg-white/80 p-4">
+                <p className="text-sm font-semibold text-accent-teal">
+                  Submission guidelines
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-gray-700">
+                  {event.abstractSubmission.guidelines}
+                </p>
+                {(() => {
+                  const email = extractEmail(event.abstractSubmission.guidelines!);
+                  return email ? (
+                    <a
+                      href={`mailto:${email}`}
+                      className="mt-3 inline-block text-sm font-semibold text-accent-teal hover:underline"
+                    >
+                      Email your abstract to {email} →
+                    </a>
+                  ) : null;
+                })()}
+              </div>
+            )}
           </section>
         )}
 

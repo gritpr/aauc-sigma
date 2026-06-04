@@ -5,6 +5,8 @@ export type EventStatus = "draft" | "published";
 export interface EventPricingTier {
   label: string;
   amountKobo: number;
+  /** Paystack Shop or hosted payment page URL */
+  paymentLink?: string;
 }
 
 export interface EventTrack {
@@ -22,6 +24,7 @@ export interface AbstractSubmissionInfo {
   structure: string;
   keywordsCount: number;
   formats: string[];
+  guidelines?: string;
 }
 
 export interface ChapterEvent {
@@ -35,6 +38,7 @@ export interface ChapterEvent {
   priceKobo: number;
   capacity?: number;
   status: EventStatus;
+  /** Firebase Storage download URL — card / list thumbnail */
   imageUrl?: string;
   /** Extended fields from conference flier / detail page */
   subtitle?: string;
@@ -42,6 +46,7 @@ export interface ChapterEvent {
   motto?: string;
   accreditation?: string;
   venue?: string;
+  /** Firebase Storage download URL — detail page hero / flier */
   flierImageUrl?: string;
   pricingTiers?: EventPricingTier[];
   tracks?: EventTrack[];

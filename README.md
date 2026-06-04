@@ -38,6 +38,17 @@ Open [http://localhost:3000](http://localhost:3000).
 3. Create composite index: collection `events`, fields `status` (Ascending) + `startDate` (Ascending) — or deploy [`firebase/firestore.indexes.json`](firebase/firestore.indexes.json).
 4. Add and publish events in **Firebase Console** → Firestore → `events` collection (`status: "published"`).
 
+### Event images
+
+Upload fliers in **Firebase Console** → Storage, then paste the file’s download URL into the event document in Firestore:
+
+| Field | Use |
+|-------|-----|
+| `imageUrl` | Thumbnail on cards and home preview |
+| `flierImageUrl` | Hero on the event detail page (optional; falls back to `imageUrl`) |
+
+Use full `https://` URLs (e.g. Firebase Storage or any public image host). Deploy [`firebase/storage.rules`](firebase/storage.rules) if you use Firebase Storage for public reads.
+
 ### Export registrations as CSV
 
 Firebase Console → Firestore → `registrations` collection → **Export collection**. Fields are flat scalars for easy CSV import.

@@ -1,5 +1,6 @@
 import { FieldValue, type DocumentData } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { resolveRegistrationAmountKobo } from "@/lib/registration/pricing";
 import type { CreateRegistrationInput, Registration, RegistrationStatus } from "@/types/registration";
 import { getEventById } from "./events";
 
@@ -11,8 +12,15 @@ function mapDoc(id: string, data: DocumentData): Registration {
     fullName: data.fullName,
     email: data.email,
     phone: data.phone,
-    organization: data.organization,
-    role: data.role,
+    organization: data.organization ?? undefined,
+    role: data.role ?? undefined,
+    cadre: data.cadre ?? undefined,
+    preferredNameOnCertificate: data.preferredNameOnCertificate ?? undefined,
+    photoUrl: data.photoUrl ?? undefined,
+    participantStatus: data.participantStatus ?? undefined,
+    gender: data.gender ?? undefined,
+    industry: data.industry ?? undefined,
+    institution: data.institution ?? undefined,
     status: data.status as RegistrationStatus,
     amount: data.amount,
     currency: data.currency,
@@ -32,6 +40,7 @@ export async function createRegistration(
     throw new Error("Event not found or not available for registration");
   }
 
+  const amount = resolveRegistrationAmountKobo(event, input.participantStatus);
   const now = FieldValue.serverTimestamp();
   const ref = getAdminDb().collection("registrations").doc();
 
@@ -43,8 +52,15 @@ export async function createRegistration(
     phone: input.phone.trim(),
     organization: input.organization?.trim() || null,
     role: input.role?.trim() || null,
+    cadre: input.cadre?.trim() || null,
+    preferredNameOnCertificate: input.preferredNameOnCertificate?.trim() || null,
+    photoUrl: input.photoUrl || null,
+    participantStatus: input.participantStatus || null,
+    gender: input.gender?.trim() || null,
+    industry: input.industry?.trim() || null,
+    institution: input.institution?.trim() || null,
     status: "pending_payment",
-    amount: event.priceKobo,
+    amount,
     currency: "NGN",
     createdAt: now,
     updatedAt: now,
@@ -52,6 +68,16 @@ export async function createRegistration(
 
   const saved = await ref.get();
   return mapDoc(saved.id, saved.data()!);
+}
+
+export async function setRegistrationPhotoUrl(
+  id: string,
+  photoUrl: string
+): Promise<void> {
+  await getAdminDb().collection("registrations").doc(id).update({
+    photoUrl,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }
 
 export async function getRegistrationById(id: string): Promise<Registration | null> {

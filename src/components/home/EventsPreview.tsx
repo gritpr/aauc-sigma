@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { Button } from "@/components/ui/Button";
 import { formatEventDateRange } from "@/lib/utils/format";
-import { getEventImageUrl } from "@/config/images";
+import { getEventCardImageUrl } from "@/lib/events/image";
+import { EventCoverImage } from "@/components/events/EventCoverImage";
 import type { ChapterEvent } from "@/types/event";
 
 interface EventsPreviewProps {
@@ -46,12 +46,11 @@ export function EventsPreview({ events }: EventsPreviewProps) {
                 className="group overflow-hidden rounded-xl border border-primary/10 bg-surface shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/10"
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  <Image
-                    src={getEventImageUrl(event.imageUrl, event.slug)}
+                  <EventCoverImage
+                    src={getEventCardImageUrl(event)}
                     alt={event.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    className="transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute left-3 top-3 rounded-full bg-accent-gold px-2.5 py-0.5 text-xs font-bold text-primary-dark">
                     {formatEventDateRange(event.startDate, event.endDate)}

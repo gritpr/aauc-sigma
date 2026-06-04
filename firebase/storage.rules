@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Public read for published event assets; writes via Admin SDK only
+    match /events/{eventSlug}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /registrations/{registrationId}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
