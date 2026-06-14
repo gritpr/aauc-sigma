@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-export const participantStatusSchema = z.enum(["member", "non_member", "student"]);
-
 export const genderSchema = z.enum([
   "female",
   "male",
@@ -40,7 +38,10 @@ export const conferenceRegistrationSchema = z.object({
     .string()
     .min(1, "Preferred name on certificate is required")
     .max(120, "Must be 120 characters or fewer"),
-  participantStatus: participantStatusSchema,
+  pricingTierIndex: z.coerce
+    .number()
+    .int()
+    .min(0, "Select a registration category"),
   gender: genderSchema,
   industry: z.string().min(1, "Industry is required").max(120, "Must be 120 characters or fewer"),
   institution: z
@@ -98,7 +99,7 @@ export function validateConferenceRegistrationForm(
     role: trimFormValue(form, "role"),
     cadre: trimFormValue(form, "cadre"),
     preferredNameOnCertificate: trimFormValue(form, "preferredNameOnCertificate"),
-    participantStatus: trimFormValue(form, "participantStatus"),
+    pricingTierIndex: trimFormValue(form, "pricingTierIndex"),
     gender: trimFormValue(form, "gender"),
     industry: trimFormValue(form, "industry"),
     institution: trimFormValue(form, "institution"),
@@ -125,6 +126,22 @@ export function validateRegistrationPhoto(file: File | null): string | null {
   }
   if (file.size > MAX_PHOTO_BYTES) {
     return "Photo must be 5 MB or smaller";
+  }
+  return null;
+}
+
+export function validateRegistrationIdDoc(
+  file: File | null,
+  required: boolean
+): string | null {
+  if (!file || file.size === 0) {
+    return required ? "An ID document is required for your registration category" : null;
+  }
+  if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
+    return "ID document must be JPEG, PNG, or WebP";
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    return "ID document must be 5 MB or smaller";
   }
   return null;
 }

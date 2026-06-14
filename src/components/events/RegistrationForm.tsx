@@ -3,11 +3,12 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import {
-  getParticipantStatusOptions,
+  getPricingTierOptions,
   isConferenceEvent,
 } from "@/lib/registration/pricing";
 import {
   validateConferenceRegistrationForm,
+  validateRegistrationIdDoc,
   validateRegistrationPhoto,
   validateStandardRegistrationForm,
   zodToFieldErrors,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/validation/registration";
 import { formatNairaFromKobo } from "@/lib/utils/format";
 import type { ChapterEvent } from "@/types/event";
-import type { ParticipantStatus } from "@/types/registration";
 
 interface RegistrationFormProps {
   event: ChapterEvent;
@@ -46,20 +46,29 @@ function FieldError({ message }: { message?: string }) {
 
 export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
   const conference = isConferenceEvent(event);
-  const statusOptions = useMemo(
-    () => (conference ? getParticipantStatusOptions(event) : []),
+  const tierOptions = useMemo(
+    () => (conference ? getPricingTierOptions(event) : []),
     [conference, event]
   );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [selectedStatus, setSelectedStatus] = useState<ParticipantStatus>("member");
+  const [selectedTierIndex, setSelectedTierIndex] = useState(
+    () => tierOptions[0]?.value ?? "0"
+  );
 
   const selectedAmount = useMemo(() => {
-    const option = statusOptions.find((o) => o.value === selectedStatus);
+    const option = tierOptions.find((o) => o.value === selectedTierIndex);
     return option?.amountKobo ?? event.priceKobo;
-  }, [statusOptions, selectedStatus, event.priceKobo]);
+  }, [tierOptions, selectedTierIndex, event.priceKobo]);
+
+  const selectedTierRequiresId = useMemo(
+    () =>
+      tierOptions.find((option) => option.value === selectedTierIndex)
+        ?.requestIdDoc ?? false,
+    [tierOptions, selectedTierIndex]
+  );
 
   function clearFieldError(name: string) {
     setFieldErrors((prev) => {
@@ -132,6 +141,20 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       return;
     }
 
+    const requiresIdDoc =
+      tierOptions.find((option) => option.value === String(parsed.data.pricingTierIndex))
+        ?.requestIdDoc ?? false;
+    const idDoc = form.get("idDoc");
+    const idDocError = validateRegistrationIdDoc(
+      idDoc instanceof File ? idDoc : null,
+      requiresIdDoc
+    );
+    if (idDocError) {
+      setFieldErrors({ idDoc: idDocError });
+      setLoading(false);
+      return;
+    }
+
     const data = parsed.data;
     form.set("eventId", data.eventId);
     form.set("fullName", data.fullName);
@@ -140,7 +163,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
     form.set("role", data.role);
     form.set("cadre", data.cadre);
     form.set("preferredNameOnCertificate", data.preferredNameOnCertificate);
-    form.set("participantStatus", data.participantStatus);
+    form.set("pricingTierIndex", String(data.pricingTierIndex));
     form.set("gender", data.gender);
     form.set("industry", data.industry);
     form.set("institution", data.institution);
@@ -339,20 +362,21 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
 
         <fieldset
           className={`rounded-xl border bg-surface p-4 ${
-            fieldErrors.participantStatus
+            fieldErrors.pricingTierIndex
               ? "border-red-400"
               : "border-primary/15"
           }`}
         >
           <legend className="px-1 text-sm font-semibold text-gray-900">
-            Status * <span className="font-normal text-gray-500">(sets your fee)</span>
+            Registration category *{" "}
+            <span className="font-normal text-gray-500">(sets your fee)</span>
           </legend>
           <div className="mt-3 space-y-2">
-            {statusOptions.map((option) => (
+            {tierOptions.map((option) => (
               <label
                 key={option.value}
                 className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border px-4 py-3 transition-colors ${
-                  selectedStatus === option.value
+                  selectedTierIndex === option.value
                     ? "border-primary bg-primary/5"
                     : "border-gray-200 hover:border-primary/30"
                 }`}
@@ -360,12 +384,13 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
                 <span className="flex items-center gap-3">
                   <input
                     type="radio"
-                    name="participantStatus"
+                    name="pricingTierIndex"
                     value={option.value}
-                    checked={selectedStatus === option.value}
+                    checked={selectedTierIndex === option.value}
                     onChange={() => {
-                      setSelectedStatus(option.value);
-                      clearFieldError("participantStatus");
+                      setSelectedTierIndex(option.value);
+                      clearFieldError("pricingTierIndex");
+                      clearFieldError("idDoc");
                     }}
                     className="text-primary focus:ring-primary"
                   />
@@ -377,8 +402,29 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
               </label>
             ))}
           </div>
-          <FieldError message={fieldErrors.participantStatus} />
+          <FieldError message={fieldErrors.pricingTierIndex} />
         </fieldset>
+
+        {selectedTierRequiresId && (
+          <div>
+            <label htmlFor="idDoc" className="mb-1 block text-sm font-medium text-gray-700">
+              ID card *
+            </label>
+            <input
+              id="idDoc"
+              name="idDoc"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className={`${fieldClass(Boolean(fieldErrors.idDoc))} file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-sm file:font-medium file:text-primary`}
+              aria-invalid={Boolean(fieldErrors.idDoc)}
+              onChange={() => clearFieldError("idDoc")}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Upload a clear photo of your ID card. JPEG, PNG, or WebP. Max 5 MB.
+            </p>
+            <FieldError message={fieldErrors.idDoc} />
+          </div>
+        )}
 
         <p className="text-center text-sm text-gray-600">
           Total due:{" "}

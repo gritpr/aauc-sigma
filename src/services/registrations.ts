@@ -1,6 +1,10 @@
 import { FieldValue, type DocumentData } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase/admin";
-import { resolveRegistrationAmountKobo } from "@/lib/registration/pricing";
+import {
+  inferParticipantStatusFromTierLabel,
+  resolvePricingTierByIndex,
+  resolveRegistrationAmountKobo,
+} from "@/lib/registration/pricing";
 import type { CreateRegistrationInput, Registration, RegistrationStatus } from "@/types/registration";
 import { getEventById } from "./events";
 
@@ -17,6 +21,10 @@ function mapDoc(id: string, data: DocumentData): Registration {
     cadre: data.cadre ?? undefined,
     preferredNameOnCertificate: data.preferredNameOnCertificate ?? undefined,
     photoUrl: data.photoUrl ?? undefined,
+    idDocUrl: data.idDocUrl ?? undefined,
+    pricingTierIndex:
+      typeof data.pricingTierIndex === "number" ? data.pricingTierIndex : undefined,
+    pricingTierLabel: data.pricingTierLabel ?? undefined,
     participantStatus: data.participantStatus ?? undefined,
     gender: data.gender ?? undefined,
     industry: data.industry ?? undefined,
@@ -40,7 +48,14 @@ export async function createRegistration(
     throw new Error("Event not found or not available for registration");
   }
 
-  const amount = resolveRegistrationAmountKobo(event, input.participantStatus);
+  const tier =
+    input.pricingTierIndex != null
+      ? resolvePricingTierByIndex(event, input.pricingTierIndex)
+      : undefined;
+  const amount = resolveRegistrationAmountKobo(event, input.pricingTierIndex);
+  const participantStatus =
+    input.participantStatus ??
+    (tier ? inferParticipantStatusFromTierLabel(tier.label) : undefined);
   const now = FieldValue.serverTimestamp();
   const ref = getAdminDb().collection("registrations").doc();
 
@@ -55,7 +70,10 @@ export async function createRegistration(
     cadre: input.cadre?.trim() || null,
     preferredNameOnCertificate: input.preferredNameOnCertificate?.trim() || null,
     photoUrl: input.photoUrl || null,
-    participantStatus: input.participantStatus || null,
+    idDocUrl: input.idDocUrl || null,
+    pricingTierIndex: input.pricingTierIndex ?? null,
+    pricingTierLabel: tier?.label ?? input.pricingTierLabel ?? null,
+    participantStatus: participantStatus ?? null,
     gender: input.gender?.trim() || null,
     industry: input.industry?.trim() || null,
     institution: input.institution?.trim() || null,
@@ -76,6 +94,16 @@ export async function setRegistrationPhotoUrl(
 ): Promise<void> {
   await getAdminDb().collection("registrations").doc(id).update({
     photoUrl,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}
+
+export async function setRegistrationIdDocUrl(
+  id: string,
+  idDocUrl: string
+): Promise<void> {
+  await getAdminDb().collection("registrations").doc(id).update({
+    idDocUrl,
     updatedAt: FieldValue.serverTimestamp(),
   });
 }

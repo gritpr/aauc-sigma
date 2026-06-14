@@ -56,9 +56,9 @@ export function Footer() {
               Contact
             </p>
             <p className="mt-3 text-sm text-white/80">
-              memserv@sigmanursing.org
+              aausigmaconference2026@gmail.com
               <br />
-              (Placeholder — update with chapter contact)
+             +234 813 275 0008
             </p>
           </div>
         </div>

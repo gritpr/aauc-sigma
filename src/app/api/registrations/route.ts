@@ -2,14 +2,23 @@ import { NextResponse } from "next/server";
 import {
   conferenceRegistrationSchema,
   standardRegistrationSchema,
+  validateRegistrationIdDoc,
   validateRegistrationPhoto,
 } from "@/lib/validation/registration";
-import { uploadRegistrationTagPhoto } from "@/lib/registration/uploadPhoto";
+import {
+  uploadRegistrationIdDoc,
+  uploadRegistrationTagPhoto,
+} from "@/lib/registration/uploadPhoto";
 import {
   isConferenceEvent,
   resolvePaymentLink,
+  tierRequiresIdDoc,
 } from "@/lib/registration/pricing";
-import { createRegistration, setRegistrationPhotoUrl } from "@/services/registrations";
+import {
+  createRegistration,
+  setRegistrationIdDocUrl,
+  setRegistrationPhotoUrl,
+} from "@/services/registrations";
 import { getEventById } from "@/services/events";
 import {
   buildPaymentReference,
@@ -77,7 +86,7 @@ export async function POST(request: Request) {
         role: form.get("role"),
         cadre: form.get("cadre"),
         preferredNameOnCertificate: form.get("preferredNameOnCertificate"),
-        participantStatus: form.get("participantStatus"),
+        pricingTierIndex: form.get("pricingTierIndex"),
         gender: form.get("gender"),
         industry: form.get("industry"),
         institution: form.get("institution"),
@@ -88,6 +97,24 @@ export async function POST(request: Request) {
           { error: parsed.error.flatten().fieldErrors },
           { status: 400 }
         );
+      }
+
+      const tierCount = event.pricingTiers?.length ?? 0;
+      if (parsed.data.pricingTierIndex >= tierCount) {
+        return NextResponse.json(
+          { error: { pricingTierIndex: ["Select a valid registration category"] } },
+          { status: 400 }
+        );
+      }
+
+      const requiresIdDoc = tierRequiresIdDoc(event, parsed.data.pricingTierIndex);
+      const idDocFile = form.get("idDoc");
+      const idDocError = validateRegistrationIdDoc(
+        idDocFile instanceof File ? idDocFile : null,
+        requiresIdDoc
+      );
+      if (idDocError) {
+        return NextResponse.json({ error: idDocError }, { status: 400 });
       }
 
       const registration = await createRegistration(parsed.data);
@@ -101,7 +128,17 @@ export async function POST(request: Request) {
 
       await setRegistrationPhotoUrl(registration.id, photoUrl);
 
-      const paymentUrl = resolvePaymentLink(event, parsed.data.participantStatus);
+      if (requiresIdDoc && idDocFile instanceof File) {
+        const idBuffer = Buffer.from(await idDocFile.arrayBuffer());
+        const idDocUrl = await uploadRegistrationIdDoc(
+          registration.id,
+          idBuffer,
+          idDocFile.type
+        );
+        await setRegistrationIdDocUrl(registration.id, idDocUrl);
+      }
+
+      const paymentUrl = resolvePaymentLink(event, parsed.data.pricingTierIndex);
       if (paymentUrl) {
         return NextResponse.json({
           registrationId: registration.id,

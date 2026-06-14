@@ -18,6 +18,10 @@ export interface Registration {
   cadre?: string;
   preferredNameOnCertificate?: string;
   photoUrl?: string;
+  idDocUrl?: string;
+  /** Index into event.pricingTiers at registration time */
+  pricingTierIndex?: number;
+  pricingTierLabel?: string;
   participantStatus?: ParticipantStatus;
   gender?: string;
   industry?: string;
@@ -42,6 +46,10 @@ export interface CreateRegistrationInput {
   cadre?: string;
   preferredNameOnCertificate?: string;
   photoUrl?: string;
+  idDocUrl?: string;
+  /** Index into event.pricingTiers at registration time */
+  pricingTierIndex?: number;
+  pricingTierLabel?: string;
   participantStatus?: ParticipantStatus;
   gender?: string;
   industry?: string;

@@ -7,6 +7,8 @@ export interface EventPricingTier {
   amountKobo: number;
   /** Paystack Shop or hosted payment page URL */
   paymentLink?: string;
+  /** When true, registrants for this tier must upload an ID document. */
+  requestIdDoc?: boolean;
 }
 
 export interface EventTrack {

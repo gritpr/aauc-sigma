@@ -11,56 +11,79 @@ function normalizeLabel(label: string): string {
   return label.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+export interface PricingTierOption {
+  value: string;
+  label: string;
+  amountKobo: number;
+  paymentLink?: string;
+  requestIdDoc: boolean;
+}
+
 export function isConferenceEvent(event: ChapterEvent): boolean {
   return Boolean(event.pricingTiers?.length);
 }
 
-export function resolvePricingTier(
-  event: ChapterEvent,
-  participantStatus?: ParticipantStatus
-): EventPricingTier | undefined {
-  if (!participantStatus || !event.pricingTiers?.length) {
-    return undefined;
-  }
+export function getPricingTierOptions(event: ChapterEvent): PricingTierOption[] {
+  return (event.pricingTiers ?? []).map((tier, index) => ({
+    value: String(index),
+    label: tier.label,
+    amountKobo: tier.amountKobo,
+    paymentLink: tier.paymentLink,
+    requestIdDoc: tier.requestIdDoc === true,
+  }));
+}
 
-  const keywords = STATUS_TIER_KEYWORDS[participantStatus];
-  return event.pricingTiers.find((t) => {
-    const normalized = normalizeLabel(t.label);
-    return keywords.some((kw) => normalized.includes(kw));
-  });
+/** @deprecated Use getPricingTierOptions — kept for any legacy imports */
+export const getParticipantStatusOptions = getPricingTierOptions;
+
+export function resolvePricingTierByIndex(
+  event: ChapterEvent,
+  tierIndex: number
+): EventPricingTier | undefined {
+  return event.pricingTiers?.[tierIndex];
+}
+
+export function inferParticipantStatusFromTierLabel(
+  label: string
+): ParticipantStatus | undefined {
+  const normalized = normalizeLabel(label);
+  for (const [status, keywords] of Object.entries(STATUS_TIER_KEYWORDS) as [
+    ParticipantStatus,
+    string[],
+  ][]) {
+    if (keywords.some((kw) => normalized.includes(kw))) {
+      return status;
+    }
+  }
+  return undefined;
 }
 
 export function resolveRegistrationAmountKobo(
   event: ChapterEvent,
-  participantStatus?: ParticipantStatus
+  tierIndex?: number
 ): number {
-  return resolvePricingTier(event, participantStatus)?.amountKobo ?? event.priceKobo;
+  if (tierIndex == null || !Number.isInteger(tierIndex) || tierIndex < 0) {
+    return event.priceKobo;
+  }
+  return resolvePricingTierByIndex(event, tierIndex)?.amountKobo ?? event.priceKobo;
 }
 
 export function resolvePaymentLink(
   event: ChapterEvent,
-  participantStatus?: ParticipantStatus
+  tierIndex?: number
 ): string | undefined {
-  return resolvePricingTier(event, participantStatus)?.paymentLink?.trim();
+  if (tierIndex == null || !Number.isInteger(tierIndex) || tierIndex < 0) {
+    return undefined;
+  }
+  return resolvePricingTierByIndex(event, tierIndex)?.paymentLink?.trim();
 }
 
-export function getParticipantStatusOptions(event: ChapterEvent) {
-  const tiers = event.pricingTiers ?? [];
-  const statuses: ParticipantStatus[] = ["member", "non_member", "student"];
-
-  return statuses.map((status) => {
-    const tier = resolvePricingTier(event, status);
-    return {
-      value: status,
-      label:
-        status === "member"
-          ? "Member"
-          : status === "non_member"
-            ? "Non-member"
-            : "Student",
-      amountKobo: tier?.amountKobo ?? event.priceKobo,
-      tierLabel: tier?.label,
-      paymentLink: tier?.paymentLink,
-    };
-  });
+export function tierRequiresIdDoc(
+  event: ChapterEvent,
+  tierIndex?: number
+): boolean {
+  if (tierIndex == null || !Number.isInteger(tierIndex) || tierIndex < 0) {
+    return false;
+  }
+  return resolvePricingTierByIndex(event, tierIndex)?.requestIdDoc === true;
 }
