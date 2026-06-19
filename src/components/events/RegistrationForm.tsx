@@ -105,7 +105,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
         throw new Error(parseApiError(data, setFieldErrors));
       }
       if (data.authorizationUrl) {
-        window.location.href = data.authorizationUrl;
+        window.location.assign(data.authorizationUrl);
         return;
       }
       onSuccess();
@@ -178,12 +178,11 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
         throw new Error(parseApiError(data, setFieldErrors));
       }
       if (data.paymentUrl) {
-        window.open(data.paymentUrl, "_blank", "noopener,noreferrer");
-        onSuccess();
+        window.location.assign(data.paymentUrl);
         return;
       }
       if (data.authorizationUrl) {
-        window.location.href = data.authorizationUrl;
+        window.location.assign(data.authorizationUrl);
         return;
       }
       onSuccess();
@@ -432,7 +431,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
         </p>
 
         <p className="rounded-lg bg-surface-lavender px-3 py-2 text-xs text-gray-600">
-          After you submit, you&apos;ll be taken to Paystack to complete payment. If you
+          After you submit, you&apos;ll be redirected to Paystack to complete payment. If you
           are submitting an abstract, attach your payment receipt to the conference email
           as described on the event page.
         </p>
