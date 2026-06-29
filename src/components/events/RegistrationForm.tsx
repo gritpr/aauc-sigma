@@ -104,8 +104,8 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       if (!res.ok) {
         throw new Error(parseApiError(data, setFieldErrors));
       }
-      if (data.authorizationUrl) {
-        window.location.assign(data.authorizationUrl);
+      if (data.instructionsUrl) {
+        window.location.assign(data.instructionsUrl);
         return;
       }
       onSuccess();
@@ -177,12 +177,8 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       if (!res.ok) {
         throw new Error(parseApiError(data, setFieldErrors));
       }
-      if (data.paymentUrl) {
-        window.location.assign(data.paymentUrl);
-        return;
-      }
-      if (data.authorizationUrl) {
-        window.location.assign(data.authorizationUrl);
+      if (data.instructionsUrl) {
+        window.location.assign(data.instructionsUrl);
         return;
       }
       onSuccess();
@@ -431,14 +427,13 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
         </p>
 
         <p className="rounded-lg bg-surface-lavender px-3 py-2 text-xs text-gray-600">
-          After you submit, you&apos;ll be redirected to Paystack to complete payment. If you
-          are submitting an abstract, attach your payment receipt to the conference email
-          as described on the event page.
+          After you submit, you&apos;ll see bank transfer details and WhatsApp instructions
+          to complete payment.
         </p>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Saving…" : "Submit & pay on Paystack"}
+          {loading ? "Saving…" : "Submit registration"}
         </Button>
       </form>
     );
@@ -522,7 +517,7 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Processing…" : "Continue to payment"}
+        {loading ? "Processing…" : "Submit registration"}
       </Button>
     </form>
   );

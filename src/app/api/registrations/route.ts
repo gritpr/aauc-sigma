@@ -9,48 +9,19 @@ import {
   uploadRegistrationIdDoc,
   uploadRegistrationTagPhoto,
 } from "@/lib/registration/uploadPhoto";
-import {
-  isConferenceEvent,
-  resolvePaymentLink,
-  tierRequiresIdDoc,
-} from "@/lib/registration/pricing";
+import { getPaymentInstructionsPath } from "@/config/payment";
+import { isConferenceEvent, tierRequiresIdDoc } from "@/lib/registration/pricing";
 import {
   createRegistration,
   setRegistrationIdDocUrl,
   setRegistrationPhotoUrl,
 } from "@/services/registrations";
 import { getEventById } from "@/services/events";
-import {
-  buildPaymentReference,
-  initializePaystackTransaction,
-} from "@/lib/paystack/initialize";
-import { getServerEnv } from "@/config/env";
 
-async function startPaystackCheckout(
-  registrationId: string,
-  eventId: string,
-  email: string,
-  amountKobo: number,
-  eventSlug?: string
-) {
-  const { siteUrl } = getServerEnv();
-  const reference = buildPaymentReference(registrationId);
-  const eventPath = eventSlug ? `/events/${eventSlug}` : "/events";
-
-  const payment = await initializePaystackTransaction({
-    email,
-    amountKobo,
-    reference,
-    metadata: {
-      registrationId,
-      eventId,
-    },
-    callbackUrl: `${siteUrl}${eventPath}?payment=success&registration=${registrationId}`,
-  });
-
+function paymentInstructionsResponse(registrationId: string) {
   return NextResponse.json({
     registrationId,
-    authorizationUrl: payment.authorizationUrl,
+    instructionsUrl: getPaymentInstructionsPath(registrationId),
   });
 }
 
@@ -138,21 +109,7 @@ export async function POST(request: Request) {
         await setRegistrationIdDocUrl(registration.id, idDocUrl);
       }
 
-      const paymentUrl = resolvePaymentLink(event, parsed.data.pricingTierIndex);
-      if (paymentUrl) {
-        return NextResponse.json({
-          registrationId: registration.id,
-          paymentUrl,
-        });
-      }
-
-      return startPaystackCheckout(
-        registration.id,
-        registration.eventId,
-        registration.email,
-        registration.amount,
-        event.slug
-      );
+      return paymentInstructionsResponse(registration.id);
     }
 
     const body = await request.json();
@@ -172,13 +129,7 @@ export async function POST(request: Request) {
 
     const registration = await createRegistration(parsed.data);
 
-    return startPaystackCheckout(
-      registration.id,
-      registration.eventId,
-      registration.email,
-      registration.amount,
-      event.slug
-    );
+    return paymentInstructionsResponse(registration.id);
   } catch (error) {
     console.error("[registrations]", error);
     const message =
