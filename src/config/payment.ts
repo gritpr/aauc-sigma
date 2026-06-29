@@ -8,6 +8,14 @@ export const bankTransferConfig = {
   whatsappIntl: "2347036582022",
 } as const;
 
+export type PaymentProvider = "bank_transfer" | "paystack";
+
+/** Set PAYMENT_PROVIDER=paystack in env to use Shop links / Paystack API again. */
+export function getPaymentProvider(): PaymentProvider {
+  const value = process.env.PAYMENT_PROVIDER?.trim().toLowerCase();
+  return value === "paystack" ? "paystack" : "bank_transfer";
+}
+
 export function getPaymentInstructionsPath(registrationId: string): string {
   return `/registrations/${registrationId}/payment`;
 }

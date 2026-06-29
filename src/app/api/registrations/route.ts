@@ -9,7 +9,7 @@ import {
   uploadRegistrationIdDoc,
   uploadRegistrationTagPhoto,
 } from "@/lib/registration/uploadPhoto";
-import { getPaymentInstructionsPath } from "@/config/payment";
+import { registrationCheckoutResponse } from "@/lib/registration/checkout";
 import { isConferenceEvent, tierRequiresIdDoc } from "@/lib/registration/pricing";
 import {
   createRegistration,
@@ -17,13 +17,6 @@ import {
   setRegistrationPhotoUrl,
 } from "@/services/registrations";
 import { getEventById } from "@/services/events";
-
-function paymentInstructionsResponse(registrationId: string) {
-  return NextResponse.json({
-    registrationId,
-    instructionsUrl: getPaymentInstructionsPath(registrationId),
-  });
-}
 
 export async function POST(request: Request) {
   try {
@@ -109,7 +102,11 @@ export async function POST(request: Request) {
         await setRegistrationIdDocUrl(registration.id, idDocUrl);
       }
 
-      return paymentInstructionsResponse(registration.id);
+      return registrationCheckoutResponse(
+        registration,
+        event,
+        parsed.data.pricingTierIndex
+      );
     }
 
     const body = await request.json();
@@ -129,7 +126,7 @@ export async function POST(request: Request) {
 
     const registration = await createRegistration(parsed.data);
 
-    return paymentInstructionsResponse(registration.id);
+    return registrationCheckoutResponse(registration, event);
   } catch (error) {
     console.error("[registrations]", error);
     const message =

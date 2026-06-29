@@ -104,6 +104,14 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       if (!res.ok) {
         throw new Error(parseApiError(data, setFieldErrors));
       }
+      if (data.paymentUrl) {
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+      if (data.authorizationUrl) {
+        window.location.assign(data.authorizationUrl);
+        return;
+      }
       if (data.instructionsUrl) {
         window.location.assign(data.instructionsUrl);
         return;
@@ -176,6 +184,14 @@ export function RegistrationForm({ event, onSuccess }: RegistrationFormProps) {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(parseApiError(data, setFieldErrors));
+      }
+      if (data.paymentUrl) {
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+      if (data.authorizationUrl) {
+        window.location.assign(data.authorizationUrl);
+        return;
       }
       if (data.instructionsUrl) {
         window.location.assign(data.instructionsUrl);
